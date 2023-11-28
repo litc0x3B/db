@@ -1,0 +1,15 @@
+mypy
+
+faker
+
+requests
+types-requests
+
+psycopg2
+types-psycopg2
+
+bs4
+lxml
+types-beautifulsoup4
+
+annotated-types
