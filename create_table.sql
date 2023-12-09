@@ -76,3 +76,8 @@ CREATE TABLE IF NOT EXISTS ObtainedAchievement (
     user_id        INT NOT NULL REFERENCES "User"(id),
     achievement_id INT NOT NULL REFERENCES Achievement(id)
 );
+
+CREATE TABLE IF NOT EXISTS ProductDependency (
+    requester_id   SERIAL       PRIMARY KEY,
+    user_id        INT NOT NULL REFERENCES Product(id)
+);
