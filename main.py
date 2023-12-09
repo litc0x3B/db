@@ -36,7 +36,8 @@ def clear_all(connection):
         'Gift',
         'Review',
         'Achievement',
-        'ObtainedAchievement'
+        'ObtainedAchievement',
+        'ProductDependency'
     ]) + ' RESTART IDENTITY'
     with connection, connection.cursor() as cursor:
         cursor.execute(sql)
