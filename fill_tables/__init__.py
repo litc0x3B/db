@@ -37,6 +37,9 @@ def select_all(connection, klass: type[Data]) -> List[Data]:
     return list(map(lambda x: klass(**x), args))
 
 def fill(conn):
+    insert(conn, list(gen_tags()))
+    tags = select_all(conn, Tag)
+
     insert(conn, list(gen_publishers(12)))
     publishers = select_all(conn, Publisher)
 
@@ -45,20 +48,18 @@ def fill(conn):
     
     insert(conn, list(gen_products(publishers, len(users), 12)))
     products = select_all(conn, Product)
-    
-    insert(conn, list(gen_tags()))
-    tags = select_all(conn, Tag)
 
     insert(conn, list(gen_purchases(products, users, 8)))
     purchases = select_all(conn, Purchase)
+    products = select_all(conn, Product)
 
     insert(conn, list(gen_achievements(products, len(products)//4)))
     achievements = select_all(conn, Achievement)
 
+    insert(conn, list(gen_assigned_tags(tags, products, 12)))
     insert(conn, list(gen_obtained_achievements(achievements, users)))
     insert(conn, list(gen_gifts(products, users, len(users)//4)))
-    insert(conn, list(gen_reviews(products, users, len(users)//4)))
-    insert(conn, list(gen_assigned_tags(tags, products, 12)))
+    insert(conn, list(gen_reviews(products, users)))
     insert(conn, list(gen_publisher_user_bonds(publishers, users, 12)))
     insert(conn, list(gen_dependencies(products, 4)))
     

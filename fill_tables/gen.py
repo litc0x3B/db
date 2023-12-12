@@ -21,7 +21,7 @@ def gen_obtained_achievements(
     users: List[User],
 ) -> Iterable[ObtainedAchievement]:
     for achievement in achievements:
-        for user in rchoices(users, k=achievement.achievers_count):
+        for user in rchoices(users, k=randint(0, 10)):
             if (user.id is None) or (achievement.id is None):
                 raise NoneIdException()
             yield ObtainedAchievement(
@@ -42,27 +42,26 @@ def gen_achievements(
             None,
             product.id,
             _faker.text(50),
-            _faker.pyint(0, product.purchasers_count),
+            0,
         )
 
 
 def gen_reviews(
     products: List[Product], 
-    recipients: List[User],
-    n: PositiveInt
+    recipients: List[User]
 ) -> Iterable[Review]:
-    for recipient in rchoices(recipients, k=n):
-        product = rchoices(products, k=1)[0]
-        if (product.id is None) or (recipient.id is None):
-            raise NoneIdException()
-        yield Review(
-            None,
-            product.id,
-            recipient.id,
-            _faker.text(),
-            _faker.pyint(0,10),
-            _faker.date()
-        )
+    for recipient in rchoices(recipients):
+        for product in rchoices(products, k=_faker.pyint(0,len(products))):
+            if (product.id is None) or (recipient.id is None):
+                raise NoneIdException()
+            yield Review(
+                None,
+                product.id,
+                recipient.id,
+                _faker.text(),
+                _faker.pyint(0,10),
+                _faker.date()
+            )
 
 
 def gen_gifts(
@@ -93,11 +92,11 @@ def gen_products(
             None,
             publishers[_faker.pyint(0, len(publishers)-1)].id,
             _faker.bs(),
-            'todo',
+            _faker.text(),
             _faker.pydecimal(max_value=5000, positive=True, right_digits=2),
-            _faker.pyint(0, users),
-            _faker.pyint(0, users),
-            _faker.pyint(0, users*10)
+            0,
+            0,
+            0
         )
 
 
