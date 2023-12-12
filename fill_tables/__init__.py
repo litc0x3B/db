@@ -12,7 +12,8 @@ def insert(connection, objs: List):
     table = objs[0].table_name
     data = list(map(lambda x: x.__dict__, objs))
     for d in data:
-        d.pop('id')
+        if 'id' in d:
+            d.pop('id')
     fields = data[0].keys()
     fields_str = f"({', '.join(fields)})"
     values = map(lambda x: x.values(), data)
@@ -59,4 +60,5 @@ def fill(conn):
     insert(conn, list(gen_reviews(products, users, len(users)//4)))
     insert(conn, list(gen_assigned_tags(tags, products, 12)))
     insert(conn, list(gen_publisher_user_bonds(publishers, users, 12)))
+    insert(conn, list(gen_dependencies(products, 4)))
     

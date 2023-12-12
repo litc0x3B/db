@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from random import randint, choices as rchoices
 from utils import PositiveInt
+from .tags import tags
 
 
 _faker = Faker()
@@ -146,6 +147,7 @@ def gen_purchases(
 
 @lru_cache()
 def gen_tags() -> Iterable[Tag]:
+    return tags
     html_text = requests.get('https://store.steampowered.com/tag/browse/#global_492').text
     html = BeautifulSoup(html_text, "lxml")
     return map(
@@ -175,3 +177,20 @@ def gen_users(n: PositiveInt) -> Iterable[User]:
             _faker.user_name(),
             _faker.pydecimal(max_value=10000, positive=True, right_digits=2)
         )
+
+
+def gen_dependencies(
+    products: List[Product],
+    maxDlcPerGame: PositiveInt
+) -> Iterable[ProductDependency]:
+    used = []
+    for required in rchoices(products, k=len(products)):
+        used.append(required)
+        for requested in rchoices(products, k=maxDlcPerGame):
+            if requested in used:
+                continue
+            used.append(requested)
+            yield ProductDependency(
+                requested.id,
+                required.id
+            )

@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from decimal import Decimal
 from fill_tables import fill
 
-db_name = 'myDatabaseName'
+db_name = 'steam'
 
 
 def connect():

@@ -117,3 +117,11 @@ class ObtainedAchievement:
     achievement_id: int
 
     table_name: ClassVar[str] = 'ObtainedAchievement'
+
+
+@dataclass
+class ProductDependency:
+    requester_id: int
+    required_id: int
+
+    table_name: ClassVar[str] = 'ProductDependency'
