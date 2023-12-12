@@ -78,6 +78,6 @@ CREATE TABLE IF NOT EXISTS ObtainedAchievement (
 );
 
 CREATE TABLE IF NOT EXISTS ProductDependency (
-    requester_id SERIAL      PRIMARY KEY REFERENCES Product(id),
-    required_id  INT NOT NULL            REFERENCES Product(id)
+    requester_id INT NOT NULL PRIMARY KEY REFERENCES Product(id),
+    required_id  INT NOT NULL             REFERENCES Product(id)
 );
