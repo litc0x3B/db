@@ -24,8 +24,8 @@ def create_tables_if_not_exist(connection):
     with connection, connection.cursor() as cursor:
         cursor.execute(sql)
 
-def clear_all(connection):
-    sql = 'TRUNCATE ' + ', '.join([
+def drop_all(connection):
+    sql = 'DROP TABLE IF EXISTS ' + ', '.join([
         'Tag', 
         '"User"', 
         'Publisher', 
@@ -38,11 +38,11 @@ def clear_all(connection):
         'Achievement',
         'ObtainedAchievement',
         'ProductDependency'
-    ]) + ' RESTART IDENTITY'
+    ])
     with connection, connection.cursor() as cursor:
         cursor.execute(sql)
 
 connection = connect()
+drop_all(connection)
 create_tables_if_not_exist(connection)
-clear_all(connection)
 fill(connection)
