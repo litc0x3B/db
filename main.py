@@ -24,25 +24,12 @@ def create_tables_if_not_exist(connection):
     with connection, connection.cursor() as cursor:
         cursor.execute(sql)
 
-def drop_all(connection):
-    sql = 'DROP TABLE IF EXISTS ' + ', '.join([
-        'Tag', 
-        '"User"', 
-        'Publisher', 
-        'Publisher_User', 
-        'Product', 
-        'AssignedTag',
-        'Purchase',
-        'Gift',
-        'Review',
-        'Achievement',
-        'ObtainedAchievement',
-        'ProductDependency'
-    ])
+def drop_public(connection):
+    sql = 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
     with connection, connection.cursor() as cursor:
         cursor.execute(sql)
 
 connection = connect()
-drop_all(connection)
+drop_public(connection)
 create_tables_if_not_exist(connection)
 fill(connection)
