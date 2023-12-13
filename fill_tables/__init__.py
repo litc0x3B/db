@@ -58,7 +58,7 @@ def fill(conn):
 
     insert(conn, list(gen_assigned_tags(tags, products, 12)))
     insert(conn, list(gen_obtained_achievements(achievements, users)))
-    insert(conn, list(gen_gifts(products, users, len(users)//4)))
+    insert(conn, list(gen_gifts(purchases, users, len(users)//4)))
     insert(conn, list(gen_reviews(products, users)))
     insert(conn, list(gen_publisher_user_bonds(publishers, users, 12)))
     insert(conn, list(gen_dependencies(products, 4)))

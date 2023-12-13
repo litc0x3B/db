@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from random import randint, choices as rchoices
 from utils import PositiveInt
 from .tags import tags
+from .game_names import game_names
 
 
 _faker = Faker()
@@ -71,6 +72,8 @@ def gen_gifts(
 ) -> Iterable[Gift]:
     for recipient in rchoices(recipients, k=n):
         purchase = rchoices(purchases, k=1)[0]
+        while purchase.buyer_id == recipient:
+            purchase = rchoices(purchases, k=1)[0]            
         if (purchase.id is None) or (recipient.id is None):
             raise NoneIdException()
         yield Gift(
@@ -91,7 +94,7 @@ def gen_products(
         yield Product(
             None,
             publishers[_faker.pyint(0, len(publishers)-1)].id,
-            _faker.bs(),
+            game_names[_faker.pyint(0, len(game_names)-1)],
             _faker.text(),
             _faker.pydecimal(max_value=5000, positive=True, right_digits=2),
             0,
