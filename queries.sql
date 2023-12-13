@@ -3,7 +3,7 @@
 SELECT g.id, g.title, g.message, p.product_id, p.date
 	FROM Gift AS g
 	INNER JOIN Purchase AS p
-	ON p.id = 5 AND g.purchase_id = 5
+	ON p.recipient_id = 5 AND g.purchase_id = p.id
 	ORDER BY date DESC;
 
 
