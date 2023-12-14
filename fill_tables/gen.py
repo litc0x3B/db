@@ -93,7 +93,6 @@ def gen_gifts(
 
 def gen_products(
     publishers: List[Publisher],
-    users: PositiveInt,
     n: PositiveInt
 ) -> Iterable[Product]:
     for i in range(n):
