@@ -19,13 +19,13 @@ CREATE TABLE IF NOT EXISTS Publisher (
 
 CREATE TABLE IF NOT EXISTS Publisher_User (
     id           SERIAL          PRIMARY KEY,
-    user_id      INT NOT NULL    REFERENCES "User"(id),
-    publisher_id INT NOT NULL    REFERENCES Publisher(id)
+    user_id      INT NOT NULL    REFERENCES "User"(id) ON DELETE CASCADE,
+    publisher_id INT NOT NULL    REFERENCES Publisher(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Product (
     id               SERIAL                PRIMARY KEY,
-    publisher_id     INT NOT NULL          REFERENCES Publisher(id),
+    publisher_id     INT NOT NULL          REFERENCES Publisher(id) ON DELETE CASCADE,
     name             VARCHAR(255) NOT NULL,
     description      TEXT NOT NULL,
     price            MONEY NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS Gift (
 
 CREATE TABLE IF NOT EXISTS Review (
     id         SERIAL           PRIMARY KEY,
-    writer_id  INT              REFERENCES "User"(id),
+    writer_id  INT              REFERENCES "User"(id) ON DELETE SET NULL,
     subject_id INT NOT NULL     REFERENCES Product(id) ON DELETE CASCADE,
     rating     SMALLINT NOT NULL,
     text       TEXT NOT NULL,
@@ -103,13 +103,13 @@ CREATE OR REPLACE FUNCTION recalc_product_purchases_on_new()
 BEGIN
   UPDATE Product 
     SET purchasers_count = purchasers_count + 1
-    WHERE NEW.subject_id = id;
+    WHERE NEW.product_id = id;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER recalc_product_purchases_on_new
-AFTER INSERT ON Review
+AFTER INSERT ON Purchase
 FOR EACH ROW
 EXECUTE PROCEDURE recalc_product_purchases_on_new();
 
@@ -156,7 +156,7 @@ BEGIN
   UPDATE Product
     SET rating_sum = rating_sum - OLD.rating, reviews_count = reviews_count - 1
     WHERE OLD.subject_id = id;
-  RETURN OLD;
+  RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -180,7 +180,7 @@ EXECUTE PROCEDURE recalc_product_rating_stats_on_delete_review();
 -- FOR EACH ROW
 -- EXECUTE PROCEDURE assign_purchase_recipient_on_gift_delete();
 
--- ON DELETE Achivement
+-- ON DELETE ObtainedAchivement
 CREATE OR REPLACE FUNCTION recalc_achievement_owners_on_delete_obtained()
   RETURNS TRIGGER AS $$
 BEGIN
@@ -196,20 +196,52 @@ AFTER DELETE ON ObtainedAchievement
 FOR EACH ROW
 EXECUTE PROCEDURE recalc_achievement_owners_on_delete_obtained();
 
--- ON DELETE User
--- CREATE OR REPLACE FUNCTION delete_user_if_not_last_publisher_owner()
---   RETURNS TRIGGER AS $$
--- BEGIN
---   IF (SELECT count(DISTINCT user_id) FROM Publisher_User WHERE user_id = OLD.id) > 1
---   THEN
---       RETURN OLD;
---    ELSE
---       RETURN NULL;
---    END IF;
--- END;
--- $$ LANGUAGE plpgsql;
+--ON DELETE Purchase
+CREATE OR REPLACE FUNCTION recalc_product_purchases_on_delete()
+  RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE Product 
+    SET purchasers_count = purchasers_count - 1
+    WHERE OLD.product_id = id;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
--- CREATE OR REPLACE TRIGGER delete_user_if_not_last_publisher_owner
--- BEFORE DELETE ON ObtainedAchievement
--- FOR EACH ROW
--- EXECUTE PROCEDURE delete_user_if_not_last_publisher_owner();
+CREATE OR REPLACE TRIGGER recalc_product_purchases_on_delete
+AFTER DELETE ON Purchase
+FOR EACH ROW
+EXECUTE PROCEDURE recalc_product_purchases_on_delete();
+
+-- ON DELETE User
+CREATE OR REPLACE FUNCTION delete_user_if_not_last_publisher_owner()
+  RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT 1 < ALL 
+    (
+        WITH owned_pubs AS 
+        (
+            SELECT publisher_id 
+            FROM publisher_user 
+            WHERE user_id = OLD.id
+        ), other_users AS 
+        (
+            SELECT DISTINCT owned_pubs.publisher_id, user_id
+            FROM publisher_user
+            JOIN owned_pubs   
+            ON publisher_user.publisher_id = owned_pubs.publisher_id
+        )
+        SELECT count(*) 
+            FROM other_users  
+            GROUP BY publisher_id
+    )
+    THEN
+        RAISE EXCEPTION 'Сannot delete last user that owns publisher ("User".id: %)', OLD.id;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER delete_user_if_not_last_publisher_owner
+BEFORE DELETE ON "User"
+FOR EACH ROW
+EXECUTE PROCEDURE delete_user_if_not_last_publisher_owner();
