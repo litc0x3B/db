@@ -36,29 +36,29 @@ CREATE TABLE IF NOT EXISTS Product (
 
 CREATE TABLE IF NOT EXISTS AssignedTag (
     id         SERIAL PRIMARY KEY,
-    tag_id     INT    REFERENCES Tag(id),
-    product_id INT    REFERENCES Product(id)
+    tag_id     INT    REFERENCES Tag(id) ON DELETE CASCADE,
+    product_id INT    REFERENCES Product(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Purchase (
     id         SERIAL        PRIMARY KEY,
-    product_id INT NOT NULL  REFERENCES Product(id),
-    buyer_id   INT NOT NULL  REFERENCES "User"(id),
+    product_id INT NOT NULL  REFERENCES Product(id) ON DELETE CASCADE,
+    buyer_id   INT NOT NULL  REFERENCES "User"(id) ON DELETE CASCADE,
     date       DATE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Gift (
     id           SERIAL                PRIMARY KEY,
     purchase_id  INT NOT NULL          REFERENCES Purchase(id),
-    recipient_id INT NOT NULL          REFERENCES "User"(id),
+    recipient_id INT NOT NULL          REFERENCES "User"(id) ON DELETE CASCADE,
     title        VARCHAR(255) NOT NULL,
     message      TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Review (
     id         SERIAL           PRIMARY KEY,
-    writer_id  INT NOT NULL     REFERENCES "User"(id),
-    subject_id INT NOT NULL     REFERENCES Product(id),
+    writer_id  INT              REFERENCES "User"(id),
+    subject_id INT NOT NULL     REFERENCES Product(id) ON DELETE CASCADE,
     rating     SMALLINT NOT NULL,
     text       TEXT NOT NULL,
     date       DATE NOT NULL
@@ -66,19 +66,19 @@ CREATE TABLE IF NOT EXISTS Review (
 
 CREATE TABLE IF NOT EXISTS Achievement (
     id              SERIAL                PRIMARY KEY,
-    product_id      INT NOT NULL          REFERENCES Product(id),
+    product_id      INT NOT NULL          REFERENCES Product(id) ON DELETE CASCADE,
     name            VARCHAR(255) NOT NULL,
     achievers_count INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ObtainedAchievement (
     id             SERIAL       PRIMARY KEY,
-    user_id        INT NOT NULL REFERENCES "User"(id),
-    achievement_id INT NOT NULL REFERENCES Achievement(id)
+    user_id        INT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+    achievement_id INT NOT NULL REFERENCES Achievement(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ProductDependency (
-    requester_id INT NOT NULL PRIMARY KEY REFERENCES Product(id),
+    requester_id INT NOT NULL PRIMARY KEY REFERENCES Product(id) ON DELETE CASCADE,
     required_id  INT NOT NULL             REFERENCES Product(id)
 );
 
@@ -112,7 +112,6 @@ CREATE OR REPLACE TRIGGER recalc_product_purchases_on_new
 AFTER INSERT ON Review
 FOR EACH ROW
 EXECUTE PROCEDURE recalc_product_purchases_on_new();
-
 
 CREATE OR REPLACE FUNCTION recalc_product_rating_stats_on_new_review()
   RETURNS TRIGGER AS $$
@@ -149,3 +148,68 @@ CREATE OR REPLACE TRIGGER new_dependency_validate
 BEFORE INSERT ON ProductDependency
 FOR EACH ROW
 EXECUTE FUNCTION new_product_dependency_validate();
+
+-- ON DELETE Review
+CREATE OR REPLACE FUNCTION recalc_product_rating_stats_on_delete_review()
+  RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE Product
+    SET rating_sum = rating_sum - OLD.rating, reviews_count = reviews_count - 1
+    WHERE OLD.subject_id = id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER recalc_product_rating_stats_on_delete_review
+AFTER DELETE ON Review
+FOR EACH ROW
+EXECUTE PROCEDURE recalc_product_rating_stats_on_delete_review();
+
+-- ON DELETE Gift
+--CREATE OR REPLACE FUNCTION assign_purchase_recipient_on_gift_delete()
+--  RETURNS TRIGGER AS $$
+--BEGIN
+--  UPDATE Purchase 
+--    SET buyer_id = OLD.recipient_id 
+--    WHERE id = OLD.purchase_id;
+--  RETURN OLD;
+--END;
+
+-- CREATE OR REPLACE TRIGGER recalc_product_rating_stats_on_delete_review
+-- BEFORE DELETE ON
+-- FOR EACH ROW
+-- EXECUTE PROCEDURE assign_purchase_recipient_on_gift_delete();
+
+-- ON DELETE Achivement
+CREATE OR REPLACE FUNCTION recalc_achievement_owners_on_delete_obtained()
+  RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE Achievement
+    SET achievers_count = achievers_count - 1
+    WHERE OLD.achievement_id = id;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER recalc_achievement_owners_on_delete_obtained
+AFTER DELETE ON ObtainedAchievement
+FOR EACH ROW
+EXECUTE PROCEDURE recalc_achievement_owners_on_delete_obtained();
+
+-- ON DELETE User
+-- CREATE OR REPLACE FUNCTION delete_user_if_not_last_publisher_owner()
+--   RETURNS TRIGGER AS $$
+-- BEGIN
+--   IF (SELECT count(DISTINCT user_id) FROM Publisher_User WHERE user_id = OLD.id) > 1
+--   THEN
+--       RETURN OLD;
+--    ELSE
+--       RETURN NULL;
+--    END IF;
+-- END;
+-- $$ LANGUAGE plpgsql;
+
+-- CREATE OR REPLACE TRIGGER delete_user_if_not_last_publisher_owner
+-- BEFORE DELETE ON ObtainedAchievement
+-- FOR EACH ROW
+-- EXECUTE PROCEDURE delete_user_if_not_last_publisher_owner();
