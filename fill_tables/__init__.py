@@ -5,6 +5,8 @@ from .gen import *
 def to_str_value(x):
     if isinstance(x, str):
         return "'" + x.replace("'", "''") + "'"
+    elif isinstance(x, datetime):
+        return "'" + str(x) + "'"
     else:
         return str(x)
 
@@ -40,26 +42,26 @@ def fill(conn):
     insert(conn, list(gen_tags()))
     tags = select_all(conn, Tag)
 
-    insert(conn, list(gen_publishers(12)))
+    insert(conn, list(gen_publishers(30)))
     publishers = select_all(conn, Publisher)
 
-    insert(conn, list(gen_users(12)))
+    insert(conn, list(gen_users(300)))
     users = select_all(conn, User)
     
-    insert(conn, list(gen_products(publishers, len(users), 12)))
+    insert(conn, list(gen_products(publishers, len(users), 200)))
     products = select_all(conn, Product)
 
-    insert(conn, list(gen_purchases(products, users, 8)))
+    insert(conn, list(gen_purchases(products, users, 5)))
     purchases = select_all(conn, Purchase)
     products = select_all(conn, Product)
 
-    insert(conn, list(gen_achievements(products, len(products)//4)))
+    insert(conn, list(gen_achievements(products, 15)))
     achievements = select_all(conn, Achievement)
 
-    insert(conn, list(gen_assigned_tags(tags, products, 12)))
+    insert(conn, list(gen_assigned_tags(tags, products, 8)))
     insert(conn, list(gen_obtained_achievements(achievements, users)))
-    insert(conn, list(gen_gifts(products, users, len(users)//4)))
+    insert(conn, list(gen_gifts(purchases, users, len(users)//2)))
     insert(conn, list(gen_reviews(products, users)))
-    insert(conn, list(gen_publisher_user_bonds(publishers, users, 12)))
+    insert(conn, list(gen_publisher_user_bonds(publishers, users, 4)))
     insert(conn, list(gen_dependencies(products, 4)))
     

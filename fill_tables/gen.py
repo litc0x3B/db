@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from random import randint, choices as rchoices
 from utils import PositiveInt
 from .tags import tags
+from .game_names import game_names
+from datetime import datetime, date
 
 
 _faker = Faker()
@@ -21,7 +23,7 @@ def gen_obtained_achievements(
     users: List[User],
 ) -> Iterable[ObtainedAchievement]:
     for achievement in achievements:
-        for user in rchoices(users, k=randint(0, 10)):
+        for user in rchoices(users, k=randint(25, len(users))):
             if (user.id is None) or (achievement.id is None):
                 raise NoneIdException()
             yield ObtainedAchievement(
@@ -33,34 +35,39 @@ def gen_obtained_achievements(
 
 def gen_achievements(
     products: List[Product],
-    n: PositiveInt
+    max_per_game: PositiveInt
 ) -> Iterable[Achievement]:
-    for product in rchoices(products, k=n):
-        if product.id is None:
-            raise NoneIdException()
-        yield Achievement(
-            None,
-            product.id,
-            _faker.text(50),
-            0,
-        )
+    for product in rchoices(products):
+        for _ in range(_faker.pyint(1, max_per_game)):
+            if product.id is None:
+                raise NoneIdException()
+            yield Achievement(
+                None,
+                product.id,
+                _faker.text(50),
+                0,
+            )
 
 
 def gen_reviews(
     products: List[Product], 
-    recipients: List[User]
+    users: List[User]
 ) -> Iterable[Review]:
-    for recipient in rchoices(recipients):
-        for product in rchoices(products, k=_faker.pyint(0,len(products))):
-            if (product.id is None) or (recipient.id is None):
+    for product in products:
+        for writer in rchoices(users, k=_faker.pyint(25, len(users))):
+            if (product.id is None) or (writer.id is None):
                 raise NoneIdException()
             yield Review(
                 None,
                 product.id,
-                recipient.id,
+                writer.id,
                 _faker.text(),
-                _faker.pyint(0,10),
-                _faker.date()
+                _faker.pyint(1,5),
+                datetime.fromtimestamp(
+                    _faker.unix_time(
+                        start_datetime=date(2022, 1, 1),
+                    )
+                )
             )
 
 
@@ -71,6 +78,8 @@ def gen_gifts(
 ) -> Iterable[Gift]:
     for recipient in rchoices(recipients, k=n):
         purchase = rchoices(purchases, k=1)[0]
+        while purchase.buyer_id == recipient:
+            purchase = rchoices(purchases, k=1)[0]            
         if (purchase.id is None) or (recipient.id is None):
             raise NoneIdException()
         yield Gift(
@@ -91,7 +100,7 @@ def gen_products(
         yield Product(
             None,
             publishers[_faker.pyint(0, len(publishers)-1)].id,
-            _faker.bs(),
+            game_names[_faker.pyint(0, len(game_names)-1)],
             _faker.text(),
             _faker.pydecimal(max_value=5000, positive=True, right_digits=2),
             0,
@@ -103,11 +112,10 @@ def gen_products(
 def gen_publisher_user_bonds(
     all_publishers: List[Publisher],
     all_users: List[User],
-    n: PositiveInt
+    max_users_per_publisher: PositiveInt
 ) -> Iterable[PublisherUserBond]:
-    for i in range(n):
-        publisher = all_publishers[_faker.pyint(0, len(all_publishers)-1)]
-        for user in rchoices(all_users, k=len(all_users)//2):
+    for publisher in all_publishers:
+        for user in rchoices(all_users, k=max_users_per_publisher):
             if (publisher.id is None) or (user.id is None):
                 raise NoneIdException()
             yield PublisherUserBond(
@@ -140,7 +148,11 @@ def gen_purchases(
                 None,
                 product.id,
                 user.id,
-                _faker.date(),
+                datetime.fromtimestamp(
+                    _faker.unix_time(
+                        start_datetime=date(2022, 1, 1),
+                    )
+                )
             )
 
 
@@ -180,12 +192,12 @@ def gen_users(n: PositiveInt) -> Iterable[User]:
 
 def gen_dependencies(
     products: List[Product],
-    maxDlcPerGame: PositiveInt
+    max_dlc_per_game: PositiveInt
 ) -> Iterable[ProductDependency]:
     used = []
     for required in rchoices(products, k=len(products)):
         used.append(required)
-        for requested in rchoices(products, k=maxDlcPerGame):
+        for requested in rchoices(products, k=max_dlc_per_game):
             if requested in used:
                 continue
             used.append(requested)
