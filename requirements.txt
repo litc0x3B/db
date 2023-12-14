@@ -5,7 +5,7 @@ faker
 requests
 types-requests
 
-psycopg2
+psycopg2-binary
 types-psycopg2
 
 bs4
