@@ -8,6 +8,7 @@ from random import randint, choices as rchoices
 from utils import PositiveInt
 from .tags import tags
 from .game_names import game_names
+from datetime import datetime, date
 
 
 _faker = Faker()
@@ -22,7 +23,7 @@ def gen_obtained_achievements(
     users: List[User],
 ) -> Iterable[ObtainedAchievement]:
     for achievement in achievements:
-        for user in rchoices(users, k=randint(0, 10)):
+        for user in rchoices(users, k=randint(25, len(users))):
             if (user.id is None) or (achievement.id is None):
                 raise NoneIdException()
             yield ObtainedAchievement(
@@ -52,17 +53,21 @@ def gen_reviews(
     products: List[Product], 
     users: List[User]
 ) -> Iterable[Review]:
-    for product in rchoices(products):
-        for recipient in rchoices(users, k=_faker.pyint(5,len(users))):
-            if (product.id is None) or (recipient.id is None):
+    for product in products:
+        for writer in rchoices(users, k=_faker.pyint(25, len(users))):
+            if (product.id is None) or (writer.id is None):
                 raise NoneIdException()
             yield Review(
                 None,
                 product.id,
-                recipient.id,
+                writer.id,
                 _faker.text(),
-                _faker.pyint(0,10),
-                _faker.date()
+                _faker.pyint(1,5),
+                datetime.fromtimestamp(
+                    _faker.unix_time(
+                        start_datetime=date(2022, 1, 1),
+                    )
+                )
             )
 
 
@@ -143,7 +148,11 @@ def gen_purchases(
                 None,
                 product.id,
                 user.id,
-                _faker.date(),
+                datetime.fromtimestamp(
+                    _faker.unix_time(
+                        start_datetime=date(2022, 1, 1),
+                    )
+                )
             )
 
 

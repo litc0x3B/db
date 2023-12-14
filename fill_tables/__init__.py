@@ -5,6 +5,8 @@ from .gen import *
 def to_str_value(x):
     if isinstance(x, str):
         return "'" + x.replace("'", "''") + "'"
+    elif isinstance(x, datetime):
+        return "'" + str(x) + "'"
     else:
         return str(x)
 

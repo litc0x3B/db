@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS Purchase (
     id         SERIAL        PRIMARY KEY,
     product_id INT NOT NULL  REFERENCES Product(id),
     buyer_id   INT NOT NULL  REFERENCES "User"(id),
-    date       DATE NOT NULL
+    date       TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Gift (
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS Review (
     subject_id INT NOT NULL     REFERENCES Product(id),
     rating     SMALLINT NOT NULL,
     text       TEXT NOT NULL,
-    date       DATE NOT NULL
+    date       TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Achievement (

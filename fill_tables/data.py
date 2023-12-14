@@ -1,6 +1,6 @@
 from typing import ClassVar, Optional
 from decimal import Decimal
-from datetime import date
+from datetime import datetime
 from dataclasses import dataclass
 
 
@@ -55,7 +55,7 @@ class Purchase(Data):
     id: Optional[int]
     product_id: int
     buyer_id: int
-    date: date
+    date: datetime
 
     table_name: ClassVar[str] = 'Purchase'
 
@@ -95,7 +95,7 @@ class Review(Data):
     writer_id: int
     text: str
     rating: int
-    date: date
+    date: datetime
 
     table_name: ClassVar[str] = 'Review'
 
