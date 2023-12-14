@@ -1,9 +1,9 @@
--- 1. Вывести все подарки (Gift), сделанные пользователю c User.id = 5, по убыванию даты
+-- 1. Вывести все подарки (Gift), сделанные пользователю c User.id = 67, по убыванию даты
 
 SELECT g.id AS gift_id, g.title, g.message, p.product_id, p.date
 	FROM Gift AS g
 	INNER JOIN Purchase AS p
-	ON g.recipient_id = 5 AND g.purchase_id = p.id
+	ON g.recipient_id = 67 AND g.purchase_id = p.id
 	ORDER BY date DESC;
 
 
@@ -28,9 +28,9 @@ WITH publisher_tags AS (
 	SELECT prod.publisher_id, at.tag_id, COUNT(*) AS tag_count
 	FROM Product AS prod
 	INNER JOIN AssignedTag AS at
-	        ON prod.id = at.product_id
-                WHERE prod.publisher_id = 1
-	GROUP BY prod.publisher_id = 1, at.tag_id
+		ON prod.id = at.product_id
+	WHERE prod.publisher_id = 1
+	GROUP BY prod.publisher_id, at.tag_id
 	ORDER BY tag_count DESC
 )
 SELECT pt.publisher_id, pub.name AS publisher_name, pt.tag_id, t.name AS tag_name, pt.tag_count
@@ -41,7 +41,7 @@ SELECT pt.publisher_id, pub.name AS publisher_name, pt.tag_id, t.name AS tag_nam
 	ON pt.tag_id = t.id;
 	
 
--- 4. Вывести все достижения (Achievement) в игре с Product.id = 1: сначала полученные пользователем с User.id = 1 в
+-- 4. Вывести все достижения (Achievement) в игре с Product.id = 42: сначала полученные пользователем с User.id = 1 в
 -- порядке убывания кол-ва получивших его игроков, затем не полученные в том же порядке, с указанием процента получивших их игроков
 -- ВОЗМОЖНА ОШИБКА В ФОРМИРОВАНИИ ПОЛЯ obtainment
 
@@ -52,7 +52,7 @@ SELECT
 	ach.name AS ach_name,
 	obt.user_id IS NOT NULL AS obtainment,
 	CAST(ach.achievers_count / prod.purchasers_count AS float) AS percentage
-FROM (SELECT * FROM Achievement AS ach WHERE ach.product_id = 1) AS ach
+FROM (SELECT * FROM Achievement AS ach WHERE ach.product_id = 42) AS ach
 	LEFT JOIN ObtainedAchievement AS obt
 		ON obt.user_id = 1 AND ach.id = obt.achievement_id
 	CROSS JOIN (SELECT * FROM "User" AS "user" WHERE "user".id = 1) AS "user"
@@ -92,7 +92,7 @@ SELECT * FROM (
 		rel_rev.writer_id,
 		rel_rev.subject_id
 	FROM reliable_reviews AS rel_rev
-	WHERE rel_rev.subject_id = 1 AND rel_rev.ordinal >= 2 AND rel_rev.rating <= 3
+	WHERE rel_rev.subject_id = 1 AND rel_rev.ordinal>=2 AND rel_rev.rating<=3
 	ORDER BY date DESC
 	LIMIT 1
 );
@@ -140,12 +140,33 @@ SELECT prod.*, sales.last_30_days_sales
 SELECT "user".id AS user_id, "user".username, ach.id AS ach_id, ach.name AS ach_name, CAST(ach.achievers_count / prod.purchasers_count AS float) AS percentage
 	FROM Achievement AS ach
 	INNER JOIN ObtainedAchievement AS obt
-	ON obt.user_id = 1 AND ach.id = obt.achievement_id
+		ON obt.user_id = 1 AND ach.id = obt.achievement_id
 	CROSS JOIN (SELECT * FROM "User" AS "user" WHERE "user".id = 1) AS "user"
 	INNER JOIN Product AS prod
-	ON prod.id = ach.product_id
+		ON prod.id = ach.product_id
 	ORDER BY percentage ASC
 	LIMIT 3;
+
+
+-- 9. Вывести все игры с набором тегов (Tag), аналогичным набору тегов игры с Product.id = 1
+
+WITH product_tags AS (
+	SELECT at.tag_id 
+	FROM AssignedTag AS at 
+	WHERE at.product_id = 1
+), products_with_tags_count AS (
+	SELECT product_id, COUNT(*) AS all_tags, COUNT(product_tags.tag_id) AS coincided_tags
+		FROM AssignedTag AS at
+		LEFT JOIN product_tags
+		USING (tag_id)
+		GROUP BY at.product_id
+)
+SELECT prod.*
+	FROM (SELECT * FROM products_with_tags_count WHERE products_with_tags_count.all_tags = products_with_tags_count.coincided_tags) AS products_with_no_other_tags
+	INNER JOIN (SELECT COUNT(*) AS needed_tags FROM product_tags) AS needed_tags_count
+	ON needed_tags_count.needed_tags = products_with_no_other_tags.all_tags
+	INNER JOIN Product AS prod
+	ON prod.id = products_with_no_other_tags.product_id;
 
 
 -- Вывести весь не купленный пользователем дополнительный контент для некоторой игры (Product, ProductDependency) (1)
@@ -197,7 +218,7 @@ WITH RECURSIVE all_deps AS (
         -1 AS parent,
         0 AS level
     FROM Product Game
-    WHERE Game.id = 3
+    WHERE Game.id = 1
     UNION ALL
     SELECT
         Dep.id,

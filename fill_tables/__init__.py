@@ -48,7 +48,7 @@ def fill(conn):
     insert(conn, list(gen_users(300)))
     users = select_all(conn, User)
     
-    insert(conn, list(gen_products(publishers, len(users), 200)))
+    insert(conn, list(gen_products(publishers, 200)))
     products = select_all(conn, Product)
 
     insert(conn, list(gen_purchases(products, users, 5)))

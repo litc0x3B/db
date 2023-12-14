@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS Publisher (
 );
 
 CREATE TABLE IF NOT EXISTS Publisher_User (
-    id           SERIAL          PRIMARY KEY,
     user_id      INT NOT NULL    REFERENCES "User"(id) ON DELETE CASCADE,
     publisher_id INT NOT NULL    REFERENCES Publisher(id) ON DELETE CASCADE
+    PRIMARY KEY (user_id, publisher_id)
 );
 
 CREATE TABLE IF NOT EXISTS Product (
@@ -35,9 +35,9 @@ CREATE TABLE IF NOT EXISTS Product (
 );
 
 CREATE TABLE IF NOT EXISTS AssignedTag (
-    id         SERIAL PRIMARY KEY,
     tag_id     INT    REFERENCES Tag(id) ON DELETE CASCADE,
-    product_id INT    REFERENCES Product(id) ON DELETE CASCADE
+    product_id INT    REFERENCES Product(id) ON DELETE CASCADE,
+    PRIMARY KEY (tag_id, product_id)
 );
 
 CREATE TABLE IF NOT EXISTS Purchase (
@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS Achievement (
 );
 
 CREATE TABLE IF NOT EXISTS ObtainedAchievement (
-    id             SERIAL       PRIMARY KEY,
     user_id        INT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
     achievement_id INT NOT NULL REFERENCES Achievement(id) ON DELETE CASCADE
+    PRIMARY KEY (user_id, achievement_id)
 );
 
 CREATE TABLE IF NOT EXISTS ProductDependency (

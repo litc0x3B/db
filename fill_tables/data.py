@@ -101,7 +101,7 @@ class Review(Data):
 
 
 @dataclass
-class Achievement:
+class Achievement(Data):
     id: Optional[int]
     product_id: int
     name: str
@@ -111,7 +111,7 @@ class Achievement:
 
 
 @dataclass
-class ObtainedAchievement:
+class ObtainedAchievement(Data):
     id: Optional[int]
     user_id: int
     achievement_id: int
@@ -120,7 +120,7 @@ class ObtainedAchievement:
 
 
 @dataclass
-class ProductDependency:
+class ProductDependency(Data):
     requester_id: int
     required_id: int
 
