@@ -6,19 +6,19 @@ from bs4 import BeautifulSoup
 from decimal import Decimal
 from fill_tables import fill
 
-db_name = 'steam'
+db_name = 'images'
 
 
 def connect():
     return psycopg2.connect(
         user="postgres",
-        password="1",
-        host="127.0.0.1",
+        password="password",
+        host="192.168.1.48",
         port="5432",
         database=db_name
     )
 
-def create_tables_if_not_exist(connection):
+def create_tables(connection):
     with open('create_table.sql') as file:
         sql = file.read()
     with connection, connection.cursor() as cursor:
@@ -30,6 +30,5 @@ def drop_public(connection):
         cursor.execute(sql)
 
 connection = connect()
-drop_public(connection)
-create_tables_if_not_exist(connection)
+create_tables(connection)
 fill(connection)

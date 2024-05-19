@@ -2,126 +2,114 @@ from typing import ClassVar, Optional
 from decimal import Decimal
 from datetime import datetime
 from dataclasses import dataclass
+from enum import Enum
 
+class Role(Enum):
+    USER = 0
+    ADMIN = 1
+    BANNED = 2
+
+
+def to_str_value(x):
+    if isinstance(x, str):
+        return "'" + x.replace("'", "''") + "'"
+    elif isinstance(x, datetime):
+        return "'" + str(x) + "'"
+    elif isinstance(x, bytes):
+        return f"decode('{x.hex()}', 'hex')"
+    elif isinstance(x, Role):
+        return to_str_value(x.name.lower())
+    elif x is None:
+        return 'NULL'
+    else:
+        return str(x)
 
 class Data:
     table_name: ClassVar[str]
-
-
-@dataclass
-class Publisher(Data):
-    id: Optional[int]
-    name: str
-    description: str
-
-    table_name: ClassVar[str] = 'Publisher'
-
-
-@dataclass
-class PublisherUserBond(Data):
-    id: Optional[int]
-    publisher_id: int
-    user_id: int
-
-    table_name: ClassVar[str] = 'Publisher_User'
-
-@dataclass
-class Gift(Data):
-    id: Optional[int]
-    purchase_id: int
-    recipient_id: int
-    title: str
-    message: str
-    
-    table_name: ClassVar[str] = 'gift'
-
-
-@dataclass
-class Product(Data):
-    id: Optional[int]
-    publisher_id: int
-    name: str
-    description: str
-    price: Decimal
-    purchasers_count: int
-    reviews_count: int
-    rating_sum: int
-
-    table_name: ClassVar[str] = 'Product'
-
-
-@dataclass
-class Purchase(Data):
-    id: Optional[int]
-    product_id: int
-    buyer_id: int
-    date: datetime
-
-    table_name: ClassVar[str] = 'Purchase'
-
-
-@dataclass
-class Tag(Data):
-    id: Optional[int]
-    name: str
-
-    table_name: ClassVar[str] = 'Tag'
-
-
-@dataclass
-class AssignedTag(Data):
-    id: Optional[int]
-    tag_id: int
-    product_id: int
-
-    table_name: ClassVar[str] = 'AssignedTag'
+    id_field_name: ClassVar[Optional[str]]
 
 
 @dataclass
 class User(Data):
-    id: Optional[int]
-    email: str
-    password: str
-    username: str
-    money: Decimal
+    id_user: Optional[int]
     
-    table_name: ClassVar[str] = '"User"'
+    username: str
+    registration_time: datetime
+    login: str
+    password_hash: bytes
+    profile_pic_url: str
+    role: Role
 
-
+    table_name = '"user"'
+    id_field_name = 'id_user'
+    
 @dataclass
-class Review(Data):
-    id: Optional[int]
-    subject_id: int
-    writer_id: int
-    text: str
-    rating: int
-    date: datetime
-
-    table_name: ClassVar[str] = 'Review'
-
-
+class Image(Data):
+    id_image: Optional[int]
+    
+    url: str
+    created_at: datetime
+    source_url: Optional[str]
+    image_width: int
+    image_height: int
+    
+    id_user: int
+    
+    table_name = 'image'
+    id_field_name = 'id_image'
+    
 @dataclass
-class Achievement(Data):
-    id: Optional[int]
-    product_id: int
+class Comment(Data):
+    id_comment: Optional[int]
+    
+    content: str
+    created_at: datetime
+
+    id_user: int
+    id_image: int
+    
+    table_name = 'comment'
+    id_field_name = 'id_comment'
+    
+@dataclass 
+class FavoriteUserImage(Data):
+    id_user: int
+    id_image: int
+    
+    created_at: datetime
+    
+    table_name = 'favorite_user_image'
+    id_field_name = None
+    
+@dataclass
+class Tag(Data):
+    id_tag: Optional[int]
+    
     name: str
-    achievers_count: int
-
-    table_name: ClassVar[str] = 'Achievement'
-
+    description_page_url: str
+    
+    id_tag_category: int
+    
+    table_name = 'tag'
+    id_field_name = 'id_tag'
+    
+@dataclass
+class TagCategory:
+    id_tag_category: Optional[int]
+    
+    name: str
+    description_page_url: str
+    
+    table_name = 'tag_category'
+    id_field_name = 'id_tag_category'
 
 @dataclass
-class ObtainedAchievement(Data):
-    id: Optional[int]
-    user_id: int
-    achievement_id: int
-
-    table_name: ClassVar[str] = 'ObtainedAchievement'
-
-
-@dataclass
-class ProductDependency(Data):
-    requester_id: int
-    required_id: int
-
-    table_name: ClassVar[str] = 'ProductDependency'
+class ImageTag:
+    id_image: int
+    id_tag: int
+    
+    table_name = 'image_tag'
+    id_field_name = None
+    
+    def __hash__(self):
+        return hash((self.id_image, self.id_tag))

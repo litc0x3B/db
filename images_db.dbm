@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+ Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="1.0.3" use-changelog="false" last-position="0,0" last-zoom="0.9" max-obj-count="4"
+	 default-schema="public" default-owner="postgres"
+	 layers="Default layer"
+	 active-layers="0"
+	 layer-name-colors="#000000"
+	 layer-rect-colors="#b4b4b4"
+	 show-layer-names="false" show-layer-rects="false">
+<database name="images" is-template="false" allow-conns="true">
+</database>
+
+<schema name="public" layers="0" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<table name="comment" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1060" y="480"/>
+	<column name="ID_comment" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="content" not-null="true">
+		<type name="varchar" length="0"/>
+	</column>
+	<column name="created_at" not-null="true">
+		<type name="timestamp" length="0"/>
+	</column>
+	<constraint name="comment_pk" type="pk-constr" table="public.comment">
+		<columns names="ID_comment" ref-type="src-columns"/>
+	</constraint>
+
+	<customidxs object-type="column">
+		<object name="ID_user" index="3"/>
+	</customidxs>
+
+	<customidxs object-type="constraint">
+		<object name="user_fk" index="0"/>
+	</customidxs>
+</table>
+
+<table name="user" layers="0" collapse-mode="2" max-obj-count="8" z-value="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="540" y="480"/>
+	<column name="ID_user" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="username" not-null="true">
+		<type name="varchar" length="16"/>
+	</column>
+	<column name="login" not-null="true">
+		<type name="varchar" length="16"/>
+	</column>
+	<column name="registration_time" not-null="true">
+		<type name="timestamp" length="0"/>
+	</column>
+	<column name="password_hash" not-null="true">
+		<type name="bytea" length="0"/>
+	</column>
+	<column name="profile_pic_url">
+		<type name="varchar" length="512"/>
+	</column>
+	<column name="role" not-null="true">
+		<type name="public.role" length="0"/>
+	</column>
+	<constraint name="user_pk" type="pk-constr" table="public.&quot;user&quot;">
+		<columns names="ID_user" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<relationship name="user_has_many_comment" type="rel1n" layers="0"
+	 src-col-pattern="{sc}"
+	 pk-pattern="{dt}_pk" uq-pattern="{dt}_uq"
+	 src-fk-pattern="{st}_fk"
+	 custom-color="#0c2209"
+	 src-table="public.&quot;user&quot;"
+	 dst-table="public.comment"
+	 src-required="true" dst-required="false">
+	<label ref-type="name-label">
+		<position x="0" y="0"/>
+	</label>
+</relationship>
+
+<usertype name="role" configuration="enumeration">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<enumeration label="user"/>
+	<enumeration label="admin"/>
+	<enumeration label="banned"/>
+</usertype>
+
+<table name="image" layers="0" collapse-mode="2" max-obj-count="0" z-value="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1017.78" y="378.889"/>
+</table>
+
+</dbmodel>

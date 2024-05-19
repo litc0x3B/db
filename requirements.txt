@@ -8,8 +8,8 @@ types-requests
 psycopg2-binary
 types-psycopg2
 
-bs4
 lxml
-types-beautifulsoup4
 
 annotated-types
+bcrypt
+pandas
