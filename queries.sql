@@ -28,3 +28,29 @@ WITH tags_with_img_count (id_tag, name, img_count) AS
     GROUP BY tag.id_tag, tag.name
 )
 SELECT * FROM tags_with_img_count WHERE img_count < 20
+
+-- Отобразить гистограмму количества публикации изображений, сгруппированных по определенным промежуткам времени, за определенный промежуток времени.
+-- Гистограмма за период с 01.02.2024 по 21.05.2024, интервал группировки 10 дней
+WITH hist AS
+(
+    SELECT 
+        date_bin(interval '10 days', image.created_at, timestamp '20240201') as bin_center, 
+        count(*)
+        FROM image
+        WHERE timestamp '20240201' < image.created_at AND image.created_at < timestamp '20240521'
+        GROUP BY 1
+        ORDER BY 1
+)
+SELECT 
+    DATE(bin_center) || ' - ' || DATE(bin_center + interval '10 days') AS "interval",
+    count
+    FROM hist
+
+
+-- Выбрать комментарии пользователей, зарегистрировавшихся за последнюю неделю
+SELECT 
+    "user".id_user, username, comment.id_comment, content, DATE(registration_time) as reg_time
+    FROM "user"
+    JOIN comment ON "user".id_user = comment.id_user
+    WHERE   CURRENT_TIMESTAMP - INTERVAL '1 week' < "user".registration_time 
+            and "user".registration_time < CURRENT_TIMESTAMP
